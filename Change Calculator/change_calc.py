@@ -14,24 +14,26 @@ SUBGOALS
         the program without having to close and open it every time he needs to count change.
 """
 
+from decimal import Decimal
 
 coins = {
-    'quarter': .25,
-    'dime': .10,
-    'nickel': .05,
-    'penny': .01,
+    'quarter': Decimal(.25),
+    'dime': Decimal(.10),
+    'nickel': Decimal(.05),
+    'penny': Decimal(.01),
 }
 
-amount_money = 2.0
-price = 1.47
+amount_money = Decimal(4.21)
+price = Decimal(1.47)
 
 price = amount_money - price
 
 change = {}
 for coin in sorted(coins, key=coins.__getitem__, reverse=True):
-    div, mod = divmod(price, coins[coin],2)
+    div, mod = divmod(price, coins[coin])
     change[coin] = int(div)
-    price = round(price, 2) - round(coins[coin] * div, 2)
+    price = Decimal(price) - Decimal(coins[coin] * div)
 
 
-print("change=",change)
+for c in change:
+    print(c,"\t=\t", change[c])
