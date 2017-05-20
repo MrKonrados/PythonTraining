@@ -8,8 +8,8 @@ class Game(object):
     W_HEIGHT = 480
 
     # Board width and height
-    B_WIDTH = 64
-    B_HEIGHT = 48
+    B_WIDTH = W_WIDTH
+    B_HEIGHT = W_HEIGHT
 
     # Paddle width and height
     PADDLE_WIDTH = 10
@@ -22,7 +22,7 @@ class Game(object):
     WHITE = pygame.Color(255, 255, 255)
     BLACK = pygame.Color(0, 0, 0)
 
-    FPS = 30
+    FPS = 60
 
     def __init__(self):
         pygame.init()
