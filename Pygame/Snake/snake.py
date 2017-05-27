@@ -19,9 +19,13 @@ RIGHT = (STEP, 0)
 # colors
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+BROWN = (210, 105, 30)
+RED = (255, 0, 0)
 
 
 class SnakeElement(pygame.sprite.Sprite):
+    rect = None
+
     def __init__(self, pos_xy, direction=RIGHT):
         super().__init__()
         self.image = pygame.Surface((10, 10))
@@ -33,21 +37,46 @@ class SnakeElement(pygame.sprite.Sprite):
     def get_posxy(self):
         return (self.rect.x, self.rect.y)
 
+    def update(self, is_head=False):
+        if is_head:
+            self.image.fill(RED)
+        else:
+            self.image.fill(WHITE)
+
+
+class Wall(pygame.sprite.Sprite):
+    def __init__(self, pos_xy, width, height):
+        super().__init__()
+        self.image = pygame.Surface((width, height))
+        self.image.fill(BROWN)
+        self.rect = self.image.get_rect()
+        self.rect.x = pos_xy[0]
+        self.rect.y = pos_xy[1]
+
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake")
 
 game_speed = pygame.time.Clock()
 is_running = True
 
-start_pos = (WIDTH/2, HEIGHT/2)
-snake = []
+snake = pygame.sprite.LayeredUpdates()
+start_pos = (WIDTH / 2, HEIGHT / 2)
 for i in range(10):
-    snake.append(SnakeElement((start_pos[0] + (i * STEP), start_pos[1])))
-
-all_sprites = pygame.sprite.Group()
-all_sprites.add(snake)
+    snake.add(SnakeElement((start_pos[0] + (i * STEP), start_pos[1])))
 
 current_direction = RIGHT
+walls = pygame.sprite.Group()
+
+# # create walls
+wall_top = Wall((0, 0), WIDTH, 10)
+wall_bottom = Wall((0, HEIGHT - 10), WIDTH, 10)
+wall_left = Wall((0, 0), 10, HEIGHT)
+wall_right = Wall((WIDTH - 10, 0), 10, HEIGHT)
+
+walls.add(wall_top, wall_bottom, wall_left, wall_right)
+
+all_sprites = pygame.sprite.Group(snake.sprites(), walls.sprites())
 
 while is_running:
     for event in pygame.event.get():
@@ -63,22 +92,27 @@ while is_running:
             elif event.key == K_a and current_direction != RIGHT:
                 current_direction = LEFT
 
-    all_sprites.remove(snake[0]) # remove tail from spirtes
-    del snake[0] # remove tail from list
+    head = snake.get_top_sprite()
+    head = SnakeElement((head.rect[0], head.rect[1]), direction=current_direction)  # new head
+    snake.remove(snake.get_sprite(0))  # remove tail
 
-    head = snake[-1].get_posxy() # get head position
-    new_head = SnakeElement(head, current_direction) # create new head
-
-    # if head is colliding with part of snake then end game
-    if pygame.sprite.spritecollide(new_head, all_sprites, False):
+    if pygame.sprite.spritecollide(head, all_sprites, False):
         is_running = False
 
-    snake.append(new_head)
+    snake.add(head)  # add new element as a head
 
-    all_sprites.add(snake)
+    for part in snake:
+        if part == head:
+            part.update(True)
+        else:
+            part.update()
+
+    # Drawing
     screen.fill(BLACK)
-    all_sprites.update()
-    all_sprites.draw(screen)
+    walls.update()
+
+    walls.draw(screen)
+    snake.draw(screen)
 
     pygame.display.flip()
     game_speed.tick(FPS)
