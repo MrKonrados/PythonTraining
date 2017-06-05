@@ -149,7 +149,6 @@ while is_running:
 
     f = Fruit((10,10), 10, 10)
     f.update()
-    f.draw(screen)
 
     # Drawing
     screen.fill(BLACK)
