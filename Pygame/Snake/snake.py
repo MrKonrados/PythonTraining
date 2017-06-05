@@ -21,6 +21,9 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 BROWN = (210, 105, 30)
 RED = (255, 0, 0)
+GREEN = (0, 128, 0)
+
+is_running = True
 
 
 class SnakeElement(pygame.sprite.Sprite):
@@ -48,13 +51,16 @@ class SnakeElement(pygame.sprite.Sprite):
 
 
 class Snake(pygame.sprite.LayeredUpdates):
-
     # TODO: Przeciażyć metodę aby mogła przyjmować argumenty
     def __init__(self):
         super().__init__()
 
-
     def move(self, direction):
+        """
+        Moves snake to designeted direction
+        :param direction: moves snake
+        :return: True if move is not colliding with nothing
+        """
         head = snake.get_top_sprite()
         head = SnakeElement((head.rect[0], head.rect[1]), direction=current_direction)  # new head
         snake.remove(snake.get_sprite(0))  # remove tail
@@ -64,12 +70,12 @@ class Snake(pygame.sprite.LayeredUpdates):
             self.add(head)
         else:
             # TODO: Proper end game
-            print("TODO: Snake hit")
+            return False
 
         if pygame.sprite.spritecollide(head, walls, False):
             # Head is colliding with wall
-            # TODO: Proper end game
-            print("TODO: Wall hit")
+            return False
+        return True
 
     def update(self):
         for snake_part in self:
@@ -78,7 +84,6 @@ class Snake(pygame.sprite.LayeredUpdates):
                 snake_part.update(True)
             else:
                 snake_part.update()
-
 
 
 class Wall(pygame.sprite.Sprite):
@@ -91,11 +96,20 @@ class Wall(pygame.sprite.Sprite):
         self.rect.y = pos_xy[1]
 
 
+class Fruit(pygame.sprite.Sprite):
+    def __init__(self, pos_xy, width, height):
+        super().__init__()
+        self.image = pygame.Surface((width, height))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect()
+        self.rect.x = pos_xy[0]
+        self.rect.y = pos_xy[1]
+
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake")
 
 game_speed = pygame.time.Clock()
-is_running = True
 
 snake = Snake()
 start_pos = (WIDTH / 2, HEIGHT / 2)
@@ -103,7 +117,6 @@ for i in range(10):
     snake.add(SnakeElement((start_pos[0] + (i * STEP), start_pos[1])))
 
 current_direction = RIGHT
-walls = pygame.sprite.Group()
 
 # # create walls
 wall_top = Wall((0, 0), WIDTH, 10)
@@ -111,6 +124,7 @@ wall_bottom = Wall((0, HEIGHT - 10), WIDTH, 10)
 wall_left = Wall((0, 0), 10, HEIGHT)
 wall_right = Wall((WIDTH - 10, 0), 10, HEIGHT)
 
+walls = pygame.sprite.Group()
 walls.add(wall_top, wall_bottom, wall_left, wall_right)
 
 while is_running:
@@ -127,11 +141,18 @@ while is_running:
             elif event.key == K_a and current_direction != RIGHT:
                 current_direction = LEFT
 
-    snake.move(current_direction)
+    if not snake.move(current_direction):
+        is_running = False
+    snake.move
     snake.update()
+    walls.update()
+
+    f = Fruit((10,10), 10, 10)
+    f.update()
+    f.draw(screen)
+
     # Drawing
     screen.fill(BLACK)
-    walls.update()
 
     walls.draw(screen)
     snake.draw(screen)
