@@ -10,7 +10,7 @@ HEIGHT = 600
 FPS = 10
 
 # movement
-STEP = 10
+STEP = 1
 UP = (0, -STEP)
 DOWN = (0, STEP)
 LEFT = (-STEP, 0)
@@ -77,6 +77,9 @@ class Snake(pygame.sprite.LayeredUpdates):
             return False
         return True
 
+    
+
+
     def update(self):
         for snake_part in self:
             if snake_part == self.get_top_sprite():
@@ -84,6 +87,8 @@ class Snake(pygame.sprite.LayeredUpdates):
                 snake_part.update(True)
             else:
                 snake_part.update()
+
+
 
 
 class Wall(pygame.sprite.Sprite):
@@ -143,7 +148,7 @@ while is_running:
 
     if not snake.move(current_direction):
         is_running = False
-    snake.move
+
     snake.update()
     walls.update()
 
