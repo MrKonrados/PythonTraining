@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 from pygame.locals import *
 
 WINDOW_SIZE = WIDTH, HEIHGT = 800, 600
@@ -11,10 +11,10 @@ BLOCK_SIZE = 10
 
 # MOVEMENT
 SPEED = 1
-RIGHT = 0, SPEED
-LEFT = 0, -SPEED
-UP = -SPEED, 0
-DOWN = SPEED, 0
+UP = (0, -SPEED)
+DOWN = (0, SPEED)
+LEFT = (-SPEED, 0)
+RIGHT = (SPEED, 0)
 
 # colors
 BLACK = (0, 0, 0)
@@ -24,79 +24,114 @@ RED = (255, 0, 0)
 GREEN = (0, 128, 0)
 
 
+class SnakeHead(pygame.sprite.Sprite):
+    rect = None
+    direction = RIGHT
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+    def move(self, direction=RIGHT):
+        self.direction = direction
+
+    def update(self):
+
+        self.rect.x += self.direction[0]
+        self.rect.y += self.direction[1]
+
+
+
+
 class SnakePart(pygame.sprite.Sprite):
     rect = None
-
-    def __init__(self, x, y):
+    direction = []
+    def __init__(self, x, y, parent):
         super().__init__()
         self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
         self.image.fill(WHITE)
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        self.rect.center = (x, y)
+        self.parent = parent
+
+    def update(self):
+        parent_x = self.parent.rect.x
+        parent_y = self.parent.rect.y
+
+        print(self.parent.rect)
+
+        dx, dy = parent_x - self.rect.x, parent_y - self.rect.y
+        dist = math.hypot(dx, dy)
+
+        dx, dy = dx / dist, dy / dist
+
+        self.direction = [dx*1, dy*1]
+        self.rect.x += self.direction[0]
+        self.rect.y += self.direction[1]
+
+
+# class Snake(pygame.sprite.LayeredUpdates):
+#     head = [WIDTH/2, HEIHGT/2]
+#
+#     def __init__(self, length=10):
+#         super().__init__()
+#         for i in range(length):
+#             body_part = SnakePart(self.head[0] - (i * BLOCK_SIZE), self.head[1])
+#             self.add(body_part)
+#
+#     def eat(self):
+#         pass
+#
+#     def move_to(self, direction=RIGHT):
+#         pass
 
 
 
-class Snake(pygame.sprite.LayeredUpdates):
-    head = [WIDTH/2, HEIHGT/2]
+all_sprites = pygame.sprite.Group()
 
-    def __init__(self, length=10):
-        super().__init__()
-        for i in range(length):
-            body_part = SnakePart(self.head[0] - (i * BLOCK_SIZE), self.head[1])
-            self.add(body_part)
+screen = pygame.display.set_mode(WINDOW_SIZE)
+pygame.display.set_caption(GAME_NAME)
 
-    def eat(self):
-        pass
+pygame.init()
+clock = pygame.time.Clock()
 
-    def move_left(self):
-        pass
+head = SnakeHead(60,50)
+body = SnakePart(40, 50, head)
 
-    def move_right(self):
-        pass
+all_sprites.add(head)
+all_sprites.add(body)
 
-    def move_up(self):
-        pass
+current_direction = RIGHT
 
-    def move_down(self):
-        pass
+while True:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            exit()
+        if event.type == KEYDOWN:
+            if event.key == K_w and current_direction != DOWN:
+                head.direction = UP
+            elif event.key == K_s and current_direction != UP:
+                head.direction = DOWN
+            elif event.key == K_d and current_direction != LEFT:
+                head.direction = RIGHT
+            elif event.key == K_a and current_direction != RIGHT:
+                head.direction = LEFT
+            elif event.key == K_ESCAPE:
+                pygame.quit()
+                exit()
 
-
-class Game:
-    is_running = False
-    clock = pygame.time.Clock()
-
-    def __init__(self):
-        pygame.display.set_mode(WINDOW_SIZE)
-        pygame.display.set_caption(GAME_NAME)
-        pygame.init()
-
-
-
-    def run(self):
-        snake = Snake()
-        while True:
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    break
-                if event.type == KEYDOWN:
-                    if event.key == K_w and current_direction != DOWN:
-                        current_direction = UP
-                    elif event.key == K_s and current_direction != UP:
-                        current_direction = DOWN
-                    elif event.key == K_d and current_direction != LEFT:
-                        current_direction = RIGHT
-                    elif event.key == K_a and current_direction != RIGHT:
-                        current_direction = LEFT
-
-            self.clock.tick(FPS)
+    # head.move(current_direction)
+    all_sprites.update()
+    # body.update()
+    # body.folwlow_parent(head)
 
 
-    def stop(self):
-        pass
+    screen.fill(BLACK)
+    all_sprites.draw(screen)
 
+    pygame.display.flip()
+    clock.tick(FPS)
 
-if __name__ == "__main__":
-    print("Starting game...")
-    Game().run()
-    print("The End")
