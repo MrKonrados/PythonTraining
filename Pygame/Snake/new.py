@@ -38,56 +38,35 @@ class SnakeHead(pygame.sprite.Sprite):
         self.direction = direction
 
     def update(self):
-
         self.rect.x += self.direction[0]
         self.rect.y += self.direction[1]
 
 
 
-
-class SnakePart(pygame.sprite.Sprite):
+class SnakeTail(SnakeHead):
     rect = None
     direction = []
     def __init__(self, x, y, parent):
-        super().__init__()
-        self.image = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE))
-        self.image.fill(WHITE)
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        super().__init__(x,y)
         self.parent = parent
+        self.image.fill(WHITE)
 
     def update(self):
+        follow_distance = BLOCK_SIZE + 3
         parent_x = self.parent.rect.x
         parent_y = self.parent.rect.y
 
-        print(self.parent.rect)
-
         dx, dy = parent_x - self.rect.x, parent_y - self.rect.y
+
+        print(dx, dy)
+
         dist = math.hypot(dx, dy)
 
-        dx, dy = dx / dist, dy / dist
-
-        self.direction = [dx*1, dy*1]
-        self.rect.x += self.direction[0]
-        self.rect.y += self.direction[1]
-
-
-# class Snake(pygame.sprite.LayeredUpdates):
-#     head = [WIDTH/2, HEIHGT/2]
-#
-#     def __init__(self, length=10):
-#         super().__init__()
-#         for i in range(length):
-#             body_part = SnakePart(self.head[0] - (i * BLOCK_SIZE), self.head[1])
-#             self.add(body_part)
-#
-#     def eat(self):
-#         pass
-#
-#     def move_to(self, direction=RIGHT):
-#         pass
-
-
+        if (dist >  follow_distance):
+            too_far = dist - follow_distance
+            dx, dy = (dx / dist) , (dy / dist)
+            self.rect.x += dx
+            self.rect.y += dy
 
 all_sprites = pygame.sprite.Group()
 
@@ -97,11 +76,20 @@ pygame.display.set_caption(GAME_NAME)
 pygame.init()
 clock = pygame.time.Clock()
 
-head = SnakeHead(60,50)
-body = SnakePart(40, 50, head)
-
+head = SnakeHead(WIDTH/2, HEIHGT/2)
 all_sprites.add(head)
-all_sprites.add(body)
+
+body_1 = SnakeTail(WIDTH/2 - 10, HEIHGT/2, head); all_sprites.add(body_1)
+# body_2 = SnakeTail(WIDTH/2 - 20, HEIHGT/2, body_1); all_sprites.add(body_2)
+# body_3 = SnakeTail(WIDTH/2 - 30, HEIHGT/2, body_2); all_sprites.add(body_3)
+# body_4 = SnakeTail(WIDTH/2 - 40, HEIHGT/2, body_3); all_sprites.add(body_4)
+# body_5 = SnakeTail(WIDTH/2 - 50, HEIHGT/2, body_4); all_sprites.add(body_5)
+# body_6 = SnakeTail(WIDTH/2 - 60, HEIHGT/2, body_5); all_sprites.add(body_6)
+# body_7 = SnakeTail(WIDTH/2 - 70, HEIHGT/2, body_6); all_sprites.add(body_7)
+# body_8 = SnakeTail(WIDTH/2 - 80, HEIHGT/2, body_7); all_sprites.add(body_8)
+
+
+
 
 current_direction = RIGHT
 
@@ -112,22 +100,19 @@ while True:
             exit()
         if event.type == KEYDOWN:
             if event.key == K_w and current_direction != DOWN:
-                head.direction = UP
+                current_direction = UP
             elif event.key == K_s and current_direction != UP:
-                head.direction = DOWN
+                current_direction = DOWN
             elif event.key == K_d and current_direction != LEFT:
-                head.direction = RIGHT
+                current_direction = RIGHT
             elif event.key == K_a and current_direction != RIGHT:
-                head.direction = LEFT
+                current_direction = LEFT
             elif event.key == K_ESCAPE:
                 pygame.quit()
                 exit()
 
-    # head.move(current_direction)
+    head.move(current_direction)
     all_sprites.update()
-    # body.update()
-    # body.folwlow_parent(head)
-
 
     screen.fill(BLACK)
     all_sprites.draw(screen)
